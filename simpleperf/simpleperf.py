@@ -15,9 +15,7 @@ def check_port(valu):
 
 parser = argparse.ArgumentParser(description="A simple iPerf version", epilog="end of help")
 
-# her skal være parser.add_argument('name', )
 parser.add_argument('-s','--server', action='store_true')
-
 
 #parser.add_argument('-l', '--values', help)
 parser.add_argument('-p','--port',type=check_port)
@@ -28,8 +26,8 @@ args = parser.parse_args() # denne MÅ være under add_arguments
 
 
 print("port number: ", args.port)
-#if args.server:
-#    print('The server is on', args.server)
+if args.server:
+    print('The server is on', args.server)
 
 '''
 def server(ip,port,format): #format?
