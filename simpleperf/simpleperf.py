@@ -9,9 +9,11 @@ def check_port(valu): # Taget fra safiqul sin git kode
         value = int(valu)
     except ValueError:
         raise argparse.ArgumentTypeError('expected an interger!')
-    if (value < 1024 | value > 65535):
-        print('a port must be between 1024 and 65535')
-        sys.exit()
+    if (value < 1024 ):
+        print('port must be above 1024')
+        
+    elif(value > 65535):
+        print("port must be les then 65535")    
     return value  
 
 def check_ip(addres):
@@ -21,18 +23,13 @@ def check_ip(addres):
         raise argparse.ArgumentError('must be different format')
     #https://www.abstractapi.com/guides/python-regex-ip-address
     match = re.match(r"[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}", ipValue)
-    if match:
-        return ipValue
-    else:
+    if not match:
         print("You must enter a valid Ip address")
         sys.exit()
+    else:
+        return ipValue
+        
 
-    '''
-    if(match not True):
-        print("fejlmelding")
-        sys.exit()
-    return ipValue      
-    '''
 
 def server(ip, port):
     serverSocket = socket(AF_INET, SOCK_STREAM)
@@ -42,7 +39,8 @@ def server(ip, port):
         print("bind fail!")
         sys.exit()
     serverSocket.listen(10)
-    print('Server is listening...')
+    
+    print(f'A simpleperf server is listening on port {port}')
     while True:
         connectionSocket, addr = serverSocket.accept()
         try:
@@ -58,17 +56,12 @@ def main():
     parser = argparse.ArgumentParser(description="A simple iPerf version", epilog="end of help")
 
     parser.add_argument('-s','--server', action='store_true')
-    #parser.add_argument('-l', '--values', help)
     parser.add_argument('-p','--port',type=check_port, default=8088)
-    parser.add_argument('-b', '--bind', type=check_ip, default='localhost')
-    #parser.add_argument()    
+    parser.add_argument('-b', '--bind', type=check_ip, default='127.0.0.1')
+    parser.add_argument('-f', '--format', type=str, )# denne må gjøres    
     args = parser.parse_args() # denne MÅ være under add_arguments
 
-    '''
-    søk opp python regx til at få en rigtig ip adresse.
     
-    '''
-    print("port number: ", args.port)
     if args.server:
         server(args.bind , args.port)
         
