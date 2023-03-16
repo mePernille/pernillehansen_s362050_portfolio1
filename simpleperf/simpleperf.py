@@ -39,8 +39,10 @@ def server(ip, port):
         print("bind fail!")
         sys.exit()
     serverSocket.listen(10)
-    
+    print('---------------------------------------------')
     print(f'A simpleperf server is listening on port {port}')
+    print('---------------------------------------------')
+
     while True:
         connectionSocket, addr = serverSocket.accept()
         try:
