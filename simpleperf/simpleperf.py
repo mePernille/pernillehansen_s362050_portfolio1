@@ -3,6 +3,7 @@ import argparse
 from socket import *
 import sys
 import re
+import time
 
 def check_port(valu): # Taget fra safiqul sin git kode
     try:
@@ -46,7 +47,7 @@ def server(ip, port):
     except:
         print("bind fail!")
         sys.exit()
-    serverSocket.listen(10)
+    serverSocket.listen(5)
     print('---------------------------------------------')
     print(f'A simpleperf server is listening on port {port}')
     print('---------------------------------------------')
@@ -71,13 +72,19 @@ def client(serverip, port):
     except ConnectionError:
         print("Something went wrong! Did not connect client to server")
 
-    packet = '0'*1000
-    clientSocket.send(packet.encode())
-    reply = clientSocket.recv(2048).decode()
-
-
-    return reply # Tror jeg vil returnere resultatet!        
-
+    while True:
+        try:
+         packet = '0'*1000
+         starttime = time.time() 
+         for i in range(packet):
+             clientSocket.send(packet.encode())
+         reply = clientSocket.recv(2048).decode()
+        except KeyboardInterrupt:
+            print("BYE")
+            break
+        stoptime = time.time() # MÅ FINDE EN MÅDE AT STOPPE TIDEN PÅ KONTROLLERET
+        return reply # Tror jeg vil returnere resultatet!        
+    clientSocket.close()
 
 def main():
 
