@@ -29,7 +29,15 @@ def check_ip(addres):
     else:
         return ipValue
         
-
+def time_int(num):
+    try:
+        num
+    except ValueError:
+        raise argparse.ArgumentTypeError('expected an interger!')
+        
+    if(num <= 0):
+        print('Must be above 0')
+    return num        
 
 def server(ip, port):
     serverSocket = socket(AF_INET, SOCK_STREAM)
@@ -53,19 +61,46 @@ def server(ip, port):
             print("something wrong with the message")
             connectionSocket.close()    
 
+
+def client(serverip, port):
+    clientSocket = socket(AF_INET, SOCK_STREAM)
+    serverAddr = (serverip, port )
+
+    try:
+        clientSocket.connect((serverAddr))
+    except ConnectionError:
+        print("Something went wrong! Did not connect client to server")
+
+    packet = '0'*1000
+    clientSocket.send(packet.encode())
+    reply = clientSocket.recv(2048).decode()
+
+
+    return reply # Tror jeg vil returnere resultatet!        
+
+
 def main():
 
     parser = argparse.ArgumentParser(description="A simple iPerf version", epilog="end of help")
 
     parser.add_argument('-s','--server', action='store_true')
-    parser.add_argument('-p','--port',type=check_port, default=8088)
     parser.add_argument('-b', '--bind', type=check_ip, default='127.0.0.1')
-    parser.add_argument('-f', '--format', type=str, )# denne må gjøres    
+    parser.add_argument('-p','--port',type=check_port, default=8088)
+    parser.add_argument('-f', '--format', type=str, )# denne må gjøres        
+    
+    parser.add_argument('-c', '--client', action='store_true')
+    parser.add_argument('-I', '--serverip', type=check_ip, default='127.0.0.1')
+    parser.add_argument('-t', '--time', type=time_int, default=25)
+    parser.add_argument('-i', '--interval', type=int, )
+    
     args = parser.parse_args() # denne MÅ være under add_arguments
-
+    # 1MB = 1000 KB, 1KB = 1000 Bytes 
     
     if args.server:
-        server(args.bind , args.port)
+        server(args.bind , args.port) #sending the two arguments to the server def
+
+    if args.client:
+        client(args.serverip, args.port)# and sending to the clint def.
         
 
 
