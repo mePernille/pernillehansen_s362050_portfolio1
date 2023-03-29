@@ -54,7 +54,6 @@ def handleClient(connectionSocket, addr): #DENNE def er jeg i tvivl om jeg må h
 
 def server(ip, port):
     serverSocket = socket(AF_INET, SOCK_STREAM)
-    # addr = (ip, port)
     try:
         serverSocket.bind((ip, port))
     except:
@@ -67,7 +66,7 @@ def server(ip, port):
 
     while True:
         connectionSocket, addr = serverSocket.accept() # HVORFOR er denne addr ikke brugt??
-        thread.start_new_thread(handleClient, (connectionSocket, addr))
+        thread.start_new_thread(handleClient, (connectionSocket, addr,))
         try:
             message = connectionSocket.recv(1000).decode()
             print(message)
@@ -80,7 +79,6 @@ def server(ip, port):
 def client(serverip, port, max_time):
     clientSocket = socket(AF_INET, SOCK_STREAM)
     serverAddr = (serverip, port )
-    
 
     try:
         clientSocket.connect(serverAddr)
@@ -94,14 +92,13 @@ def client(serverip, port, max_time):
          while t < max_time:
             for p in packet:
                  clientSocket.send(packet.encode())
-            reply = clientSocket.recv(2048).decode()
+                 # reply = clientSocket.recv(2048).decode() Sfiqul sagde denne ikke skulle være med
         except KeyboardInterrupt:
-            print("BYE")
-            clientSocket.close()
-            break
-       
-        return reply # Tror jeg vil returnere resultatet!        
-    clientSocket.close()
+            print("BYE") # DENNE printes ikke ud
+          #  clientSocket.close()
+          #  break
+            # return reply , denne vil bare retunerer alle 0'erne. det er ikke det jeg skal returnere        
+        clientSocket.close()
 
 def main():
 
@@ -120,6 +117,10 @@ def main():
     args = parser.parse_args() # denne MÅ være under add_arguments
     # 1MB = 1000 KB, 1KB = 1000 Bytes 
     
+    if args.server and args.client:
+        print("You must rund either the server OR the client")
+        sys.exit()
+
     if args.server:
         server(args.bind , args.port) #sending the two arguments to the server def
 
