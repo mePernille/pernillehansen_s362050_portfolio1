@@ -4,6 +4,9 @@ from socket import *
 import sys
 import re
 import time
+import _thread as thread
+
+allClients = [] # an array to keep all the clients in
 
 def check_port(valu): # Taget fra safiqul sin git kode
     try:
@@ -31,6 +34,7 @@ def check_ip(addres):
         return ipValue
         
 def time_int(num):
+    
     try:
         num
     except ValueError:
@@ -38,10 +42,19 @@ def time_int(num):
         
     if(num <= 0):
         print('Must be above 0')
-    return num        
+    return num
+
+
+def handleClient(connectionSocket, addr): #DENNE def er jeg i tvivl om jeg må ha med!
+    allClients.append(connectionSocket)
+    
+    # NÅR skal den lukkes?
+    connectionSocket.close()
+    allClients.remove(connectionSocket)
 
 def server(ip, port):
     serverSocket = socket(AF_INET, SOCK_STREAM)
+    # addr = (ip, port)
     try:
         serverSocket.bind((ip, port))
     except:
@@ -53,7 +66,8 @@ def server(ip, port):
     print('---------------------------------------------')
 
     while True:
-        connectionSocket, addr = serverSocket.accept()
+        connectionSocket, addr = serverSocket.accept() # HVORFOR er denne addr ikke brugt??
+        thread.start_new_thread(handleClient, (connectionSocket, addr))
         try:
             message = connectionSocket.recv(1000).decode()
             print(message)
@@ -63,26 +77,29 @@ def server(ip, port):
             connectionSocket.close()    
 
 
-def client(serverip, port):
+def client(serverip, port, max_time):
     clientSocket = socket(AF_INET, SOCK_STREAM)
     serverAddr = (serverip, port )
+    
 
     try:
-        clientSocket.connect((serverAddr))
+        clientSocket.connect(serverAddr)
     except ConnectionError:
         print("Something went wrong! Did not connect client to server")
 
     while True:
         try:
          packet = '0'*1000
-         starttime = time.time() 
-         for i in range(packet):
-             clientSocket.send(packet.encode())
-         reply = clientSocket.recv(2048).decode()
+         t = time.time() + max_time
+         while t < max_time:
+            for p in packet:
+                 clientSocket.send(packet.encode())
+            reply = clientSocket.recv(2048).decode()
         except KeyboardInterrupt:
             print("BYE")
+            clientSocket.close()
             break
-        stoptime = time.time() # MÅ FINDE EN MÅDE AT STOPPE TIDEN PÅ KONTROLLERET
+       
         return reply # Tror jeg vil returnere resultatet!        
     clientSocket.close()
 
@@ -107,7 +124,7 @@ def main():
         server(args.bind , args.port) #sending the two arguments to the server def
 
     if args.client:
-        client(args.serverip, args.port)# and sending to the clint def.
+        client(args.serverip, args.port, args.time)# and sending to the clint def.
         
 
 
