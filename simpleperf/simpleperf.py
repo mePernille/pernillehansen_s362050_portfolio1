@@ -4,7 +4,7 @@ from socket import *
 import sys
 import re
 import time
-import _thread as thread
+import threading as thread
 
 allClients = [] # an array to keep all the clients in
 
@@ -34,7 +34,7 @@ def check_ip(addres):
         return ipValue
         
 def time_int(num):
-    
+    num = int(num)
     try:
         num
     except ValueError:
@@ -45,10 +45,18 @@ def time_int(num):
     return num
 
 
-def handleClient(connectionSocket, addr): #DENNE def er jeg i tvivl om jeg må ha med!
+def handleClient(connectionSocket, addr): 
     allClients.append(connectionSocket)
-    
-    # NÅR skal den lukkes?
+    received_bytes = 0
+    while True:
+        try:
+            message = connectionSocket.recv(1000).decode()
+            if message:
+                received_bytes += 1 # Counting how many packets reseived, MUST BE made in to bytes
+        except:
+            print("something wrong with the message")
+            break
+    print(received_bytes)
     connectionSocket.close()
     allClients.remove(connectionSocket)
 
@@ -65,7 +73,7 @@ def server(ip, port):
     print('---------------------------------------------')
 
     while True:
-        connectionSocket, addr = serverSocket.accept() # HVORFOR er denne addr ikke brugt??
+        connectionSocket, addr = serverSocket.accept()
         thread.start_new_thread(handleClient, (connectionSocket, addr,))
         try:
             message = connectionSocket.recv(1000).decode()
@@ -88,16 +96,13 @@ def client(serverip, port, max_time):
     while True:
         try:
          packet = '0'*1000
-         t = time.time() + max_time
-         while t < max_time:
-            for p in packet:
-                 clientSocket.send(packet.encode())
-                 # reply = clientSocket.recv(2048).decode() Sfiqul sagde denne ikke skulle være med
+         t = time.time() + max_time 
+         while time.time() < t: # The client will send packets off 1000 * '0' while the time is less then default 25 sec, or a chosen number
+            clientSocket.send(packet.encode())
         except KeyboardInterrupt:
             print("BYE") # DENNE printes ikke ud
           #  clientSocket.close()
-          #  break
-            # return reply , denne vil bare retunerer alle 0'erne. det er ikke det jeg skal returnere        
+            break
         clientSocket.close()
 
 def main():
@@ -107,18 +112,18 @@ def main():
     parser.add_argument('-s','--server', action='store_true')
     parser.add_argument('-b', '--bind', type=check_ip, default='127.0.0.1')
     parser.add_argument('-p','--port',type=check_port, default=8088)
-    parser.add_argument('-f', '--format', type=str, )# denne må gjøres        
+    parser.add_argument('-f', '--format', type=str, choices=['B', 'KB', 'MB'], default= 'MB' )        
     
     parser.add_argument('-c', '--client', action='store_true')
     parser.add_argument('-I', '--serverip', type=check_ip, default='127.0.0.1')
     parser.add_argument('-t', '--time', type=time_int, default=25)
     parser.add_argument('-i', '--interval', type=int, )
     
-    args = parser.parse_args() # denne MÅ være under add_arguments
-    # 1MB = 1000 KB, 1KB = 1000 Bytes 
+    args = parser.parse_args() 
+    
     
     if args.server and args.client:
-        print("You must rund either the server OR the client")
+        print("You must run either the server OR the client")
         sys.exit()
 
     if args.server:
@@ -132,9 +137,3 @@ def main():
 if __name__ == '__main__':
     main()        
 
-
-'''
-# sån lager man 1000 bites
-x = '0' * 1000
-print(x)
-'''
