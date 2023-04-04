@@ -6,8 +6,6 @@ import re
 import time
 import threading
 
-allClients = [] # an array to keep all the clients in
-
 def check_port(valu): # Taget fra safiqul sin git kode
     try:
         value = int(valu)
@@ -47,7 +45,6 @@ def time_int(num):
 
 
 def handleClient(connectionSocket, addr): 
-    allClients.append(connectionSocket)
     received_bytes = 0
     while True:
         try:
@@ -59,7 +56,6 @@ def handleClient(connectionSocket, addr):
             break
     print(received_bytes)
     connectionSocket.close()
-    allClients.remove(connectionSocket)
 
 def server(ip, port, serverip):
     serverSocket = socket(AF_INET, SOCK_STREAM)
@@ -75,7 +71,7 @@ def server(ip, port, serverip):
 
     while True:
         connectionSocket, addr = serverSocket.accept()
-        thread = threading.Thread(target=handleClient, args=(connectionSocket, addr,)) # usikker på om der skal være det ekstra komma på slutten
+        thread = threading.Thread(target=handleClient, args=(connectionSocket, addr,)) # ekstra komma på slutten
         thread.start()
         # thread.start_new_thread(handleClient, (connectionSocket, addr,))
         print(f'A simpleperf client with <{ip}:{port}> is connected with <{serverip}:{port}>')
@@ -94,18 +90,22 @@ def client(serverip, port, max_time):
 
     try:
         clientSocket.connect(serverAddr)
+        print('---------------------------------------------')
+        print(f'A simpleperf client connecting to server <{serverip}>, port {port}')
+        print('---------------------------------------------')
     except ConnectionError:
         print("Something went wrong! Did not connect client to server")
 
     while True:
+        
         try:
          packet = '0'*1000
          t = time.time() + max_time 
          while time.time() < t: # The client will send packets off 1000 * '0' while the time is less then default 25 sec, or a chosen number
             clientSocket.send(packet.encode())
         except KeyboardInterrupt:
-            print("BYE") # DENNE printes ikke ud
-          #  clientSocket.close()
+            print(" BYE")
+            clientSocket.close()
             break
     clientSocket.close()
 
