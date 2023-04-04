@@ -1,6 +1,7 @@
 # a simple iPerf program
 import argparse
-from socket import *
+#from socket import *
+import socket
 import sys
 import re
 import time
@@ -48,19 +49,22 @@ def handleClient(connectionSocket, addr):
     received_bytes = 0
     while True:
         try:
-            message = connectionSocket.recv(1000).decode()
-            if message:
-                received_bytes += 1 # Counting how many packets reseived, MUST BE made in to bytes
+            data = connectionSocket.recv(1000)
+            if not data:
+                break
+            received_bytes += len(data) # Counting how many packets reseived, must be made into bytes
         except:
-            print("something wrong with the message")
-            break
+            print("something went wrong with the message")
+            connectionSocket.close()
+        break
     print(received_bytes)
+    connectionSocket.send(b'ACK')
     connectionSocket.close()
 
 def server(ip, port, serverip):
-    serverSocket = socket(AF_INET, SOCK_STREAM)
+    serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        serverSocket.bind((ip, port))
+        serverSocket.bind((ip, port,))
     except:
         print("bind fail!")
         sys.exit()
@@ -71,21 +75,15 @@ def server(ip, port, serverip):
 
     while True:
         connectionSocket, addr = serverSocket.accept()
-        thread = threading.Thread(target=handleClient, args=(connectionSocket, addr,)) # ekstra komma på slutten
+        thread = threading.Thread(target=handleClient, args=(connectionSocket, addr)) # ekstra komma på slutten
         thread.start()
-        # thread.start_new_thread(handleClient, (connectionSocket, addr,))
         print(f'A simpleperf client with <{ip}:{port}> is connected with <{serverip}:{port}>')
-        try:
-            message = connectionSocket.recv(1000).decode()
-            print(message)
-            
-        except:
-            print("something wrong with the message")
-            connectionSocket.close()    
+    
+    connectionSocket.close()    
 
 
 def client(serverip, port, max_time):
-    clientSocket = socket(AF_INET, SOCK_STREAM)
+    clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serverAddr = (serverip, port )
 
     try:
@@ -99,13 +97,14 @@ def client(serverip, port, max_time):
     while True:
         
         try:
-         packet = '0'*1000
-         t = time.time() + max_time 
-         while time.time() < t: # The client will send packets off 1000 * '0' while the time is less then default 25 sec, or a chosen number
-            clientSocket.send(packet.encode())
+            packet = b'0'*1000 # Kan være en b foran her for at gøre det om til bytes
+            t = time.time() + max_time 
+            while time.time() < t: # The client will send packets off 1000 * '0' while the time is less then default 25 sec, or a chosen number
+                clientSocket.sendall(packet) # Får problemer med denne, har prøvet med .encode() også men samme problem.
+            print('Bye')
+            break   
         except KeyboardInterrupt:
             print(" BYE")
-            clientSocket.close()
             break
     clientSocket.close()
 
