@@ -4,7 +4,7 @@ from socket import *
 import sys
 import re
 import time
-import threading as thread
+import threading
 
 allClients = [] # an array to keep all the clients in
 
@@ -18,7 +18,8 @@ def check_port(valu): # Taget fra safiqul sin git kode
         
     elif(value > 65535):
         print("port must be les then 65535")    
-    return value  
+    else:
+        return value  
 
 def check_ip(addres):
     try:
@@ -60,7 +61,7 @@ def handleClient(connectionSocket, addr):
     connectionSocket.close()
     allClients.remove(connectionSocket)
 
-def server(ip, port):
+def server(ip, port, serverip):
     serverSocket = socket(AF_INET, SOCK_STREAM)
     try:
         serverSocket.bind((ip, port))
@@ -74,7 +75,10 @@ def server(ip, port):
 
     while True:
         connectionSocket, addr = serverSocket.accept()
-        thread.start_new_thread(handleClient, (connectionSocket, addr,))
+        thread = threading.Thread(target=handleClient, args=(connectionSocket, addr,)) # usikker på om der skal være det ekstra komma på slutten
+        thread.start()
+        # thread.start_new_thread(handleClient, (connectionSocket, addr,))
+        print(f'A simpleperf client with <{ip}:{port}> is connected with <{serverip}:{port}>')
         try:
             message = connectionSocket.recv(1000).decode()
             print(message)
@@ -103,17 +107,19 @@ def client(serverip, port, max_time):
             print("BYE") # DENNE printes ikke ud
           #  clientSocket.close()
             break
-        clientSocket.close()
+    clientSocket.close()
 
 def main():
 
     parser = argparse.ArgumentParser(description="A simple iPerf version", epilog="end of help")
 
+    # below is the server options listet
     parser.add_argument('-s','--server', action='store_true')
     parser.add_argument('-b', '--bind', type=check_ip, default='127.0.0.1')
     parser.add_argument('-p','--port',type=check_port, default=8088)
     parser.add_argument('-f', '--format', type=str, choices=['B', 'KB', 'MB'], default= 'MB' )        
     
+    # below is the clien options listet
     parser.add_argument('-c', '--client', action='store_true')
     parser.add_argument('-I', '--serverip', type=check_ip, default='127.0.0.1')
     parser.add_argument('-t', '--time', type=time_int, default=25)
@@ -127,7 +133,7 @@ def main():
         sys.exit()
 
     if args.server:
-        server(args.bind , args.port) #sending the two arguments to the server def
+        server(args.bind , args.port , args.serverip) #sending the two arguments to the server def
 
     if args.client:
         client(args.serverip, args.port, args.time)# and sending to the clint def.
