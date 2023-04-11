@@ -75,8 +75,10 @@ def server(ip, port, serverip):
 
     while True:
         connectionSocket, addr = serverSocket.accept()
-        thread = threading.Thread(target=handleClient, args=(connectionSocket, addr)) # ekstra komma på slutten
+        print("accept")
+        thread = threading.Thread(target=handleClient, args=(connectionSocket, addr,)) # ekstra komma på slutten
         thread.start()
+        print("Tråd start")
         print(f'A simpleperf client with <{ip}:{port}> is connected with <{serverip}:{port}>')
     
     connectionSocket.close()    
