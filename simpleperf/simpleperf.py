@@ -52,19 +52,19 @@ def handleClient(connectionSocket, addr):
             data = connectionSocket.recv(1000)
             if not data:
                 break
-            received_bytes += len(data) # Counting how many packets reseived, must be made into bytes
+            received_bytes += len(data) # Counting how many packets reseived
         except:
             print("something went wrong with the message")
             connectionSocket.close()
-        break
+        #break
     print(received_bytes)
     connectionSocket.send(b'ACK')
-    connectionSocket.close()
+    #connectionSocket.close()
 
 def server(ip, port, serverip):
     serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        serverSocket.bind((ip, port,))
+        serverSocket.bind((ip, port))
     except:
         print("bind fail!")
         sys.exit()
@@ -85,14 +85,15 @@ def server(ip, port, serverip):
 def client(serverip, port, max_time):
     clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serverAddr = (serverip, port )
-
     try:
         clientSocket.connect(serverAddr)
         print('---------------------------------------------')
         print(f'A simpleperf client connecting to server <{serverip}>, port {port}')
         print('---------------------------------------------')
-    except ConnectionError:
+    except ConnectionError as e:
+        print(e)
         print("Something went wrong! Did not connect client to server")
+        sys.exit()
 
     while True:
         
@@ -100,7 +101,7 @@ def client(serverip, port, max_time):
             packet = b'0'*1000 # Kan være en b foran her for at gøre det om til bytes
             t = time.time() + max_time 
             while time.time() < t: # The client will send packets off 1000 * '0' while the time is less then default 25 sec, or a chosen number
-                clientSocket.sendall(packet) # Får problemer med denne, har prøvet med .encode() også men samme problem.
+                clientSocket.send(packet) # Får problemer med denne, har prøvet med .encode() også men samme problem.
                 # print("\n " + str(packet))
             print('Bye')
             break   
