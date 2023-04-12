@@ -61,7 +61,7 @@ def handleClient(connectionSocket, addr):
     connectionSocket.send(b'ACK')
     #connectionSocket.close()
 
-def server(ip, port, serverip):
+def server(ip, port, serverip, format): # må sende format til handleclient på en måde
     serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         serverSocket.bind((ip, port))
@@ -82,7 +82,7 @@ def server(ip, port, serverip):
     connectionSocket.close()    
 
 
-def client(serverip, port, max_time):
+def client(serverip, port, max_time, f):
     clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serverAddr = (serverip, port )
     try:
@@ -94,7 +94,7 @@ def client(serverip, port, max_time):
         print(e)
         print("Something went wrong! Did not connect client to server")
         sys.exit()
-
+    packet_count = 0
     while True:
         
         try:
@@ -102,6 +102,18 @@ def client(serverip, port, max_time):
             t = time.time() + max_time 
             while time.time() < t: # The client will send packets off 1000 * '0' while the time is less then default 25 sec, or a chosen number
                 clientSocket.send(packet) # the packet is sent
+                packet_count += 1
+
+            if f == 'B':
+                send_bytes = packet_count * 1000
+            elif f == 'KB':
+                send_bytes = packet_count
+            elif f == 'MB':
+                send_bytes = packet_count / 1000
+
+            print('{:<20} | {:<15} | {:<15} | {:<15}'.format('ID', 'Interval', 'Transfer', 'Bandwidth'))
+            print('------------------------------------------------------------')
+            print('{:<20} | {:<15} | {:<15} | {:<15}'.format(str(serverip)+':'+str(port), str(send_bytes), f, 'hej'))
             
             print('Bye') # When the client is done sending bytes it will print bye
             break   
@@ -136,10 +148,10 @@ def main():
         sys.exit()
 
     if args.server:
-        server(args.bind , args.port , args.serverip) #sending the two arguments to the server def
+        server(args.bind , args.port , args.serverip, args.format) #sending the two arguments to the server def
 
     if args.client:
-        client(args.serverip, args.port, args.time)# and sending to the clint def.
+        client(args.serverip, args.port, args.time, args.format)# and sending to the clint def.
         
 
 
