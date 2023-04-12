@@ -56,7 +56,7 @@ def handleClient(connectionSocket, addr):
         except:
             print("something went wrong with the message")
             connectionSocket.close()
-        #break
+        
     print(received_bytes)
     connectionSocket.send(b'ACK')
     #connectionSocket.close()
@@ -98,12 +98,12 @@ def client(serverip, port, max_time):
     while True:
         
         try:
-            packet = b'0'*1000 # Kan være en b foran her for at gøre det om til bytes
+            packet = b'0'*1000 # with the b in the front the packet is automatic made into bytes. 
             t = time.time() + max_time 
             while time.time() < t: # The client will send packets off 1000 * '0' while the time is less then default 25 sec, or a chosen number
-                clientSocket.send(packet) # Får problemer med denne, har prøvet med .encode() også men samme problem.
-                # print("\n " + str(packet))
-            print('Bye')
+                clientSocket.send(packet) # the packet is sent
+            
+            print('Bye') # When the client is done sending bytes it will print bye
             break   
         except KeyboardInterrupt:
             print(" BYE")
@@ -124,7 +124,9 @@ def main():
     parser.add_argument('-c', '--client', action='store_true')
     parser.add_argument('-I', '--serverip', type=check_ip, default='127.0.0.1')
     parser.add_argument('-t', '--time', type=time_int, default=25)
-    parser.add_argument('-i', '--interval', type=int, )
+    parser.add_argument('-i', '--interval', type=int)
+    parser.add_argument('-P', '--parallel', type=int, default=1)
+    parser.add_argument('-n', '--num', type=str, choices=['B', 'KB', 'MB'])
     
     args = parser.parse_args() 
     
