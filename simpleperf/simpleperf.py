@@ -75,10 +75,8 @@ def server(ip, port, serverip):
 
     while True:
         connectionSocket, addr = serverSocket.accept()
-        print("accept")
         thread = threading.Thread(target=handleClient, args=(connectionSocket, addr,)) # ekstra komma på slutten
         thread.start()
-        print("Tråd start")
         print(f'A simpleperf client with <{ip}:{port}> is connected with <{serverip}:{port}>')
     
     connectionSocket.close()    
@@ -103,6 +101,7 @@ def client(serverip, port, max_time):
             t = time.time() + max_time 
             while time.time() < t: # The client will send packets off 1000 * '0' while the time is less then default 25 sec, or a chosen number
                 clientSocket.sendall(packet) # Får problemer med denne, har prøvet med .encode() også men samme problem.
+                # print("\n " + str(packet))
             print('Bye')
             break   
         except KeyboardInterrupt:
