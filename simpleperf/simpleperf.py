@@ -72,7 +72,6 @@ def handleClient(connectionSocket, addr, format,ip,port):
     print('--------------------------------------------------------------------------')
     print('{:<20} | {:<15} | {:<15} | {:<15}'.format(str(ip)+':'+str(port), '{:.2f}'.format(interval), '{:.3f}'.format(r_bytes) + ' ' + format, 'y Mbps'))
 
-    #print('{:<20} | {:<15.2f} | {:<15.3f} | {:<15}'.format(str(ip)+':'+str(port), interval, received_bytes + ' ' + format, 'y Mbps'))    
     
     connectionSocket.send(b'ACK')
     #connectionSocket.close()
