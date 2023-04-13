@@ -45,7 +45,7 @@ def time_int(num):
     return num
 
 
-def handleClient(connectionSocket, addr): 
+def handleClient(connectionSocket, addr, format,ip,port): 
     received_bytes = 0
     while True:
         try:
@@ -56,8 +56,10 @@ def handleClient(connectionSocket, addr):
         except:
             print("something went wrong with the message")
             connectionSocket.close()
-        
-    print(received_bytes)
+    print('{:<20} | {:<15} | {:<15} | {:<15}'.format('ID', 'Interval', 'Received', 'Rate'))
+    print('--------------------------------------------------------------------------')
+    print('{:<20} | {:<15} | {:<15} | {:<15}'.format(str(ip)+':'+str(port), 'tid', str(received_bytes), 'y Mbps'))    
+    #print(received_bytes)
     connectionSocket.send(b'ACK')
     #connectionSocket.close()
 
@@ -75,7 +77,7 @@ def server(ip, port, serverip, format): # må sende format til handleclient på 
 
     while True:
         connectionSocket, addr = serverSocket.accept()
-        thread = threading.Thread(target=handleClient, args=(connectionSocket, addr,)) # ekstra komma på slutten
+        thread = threading.Thread(target=handleClient, args=(connectionSocket, addr,format,ip,port)) # ekstra komma på slutten
         thread.start()
         print(f'A simpleperf client with <{ip}:{port}> is connected with <{serverip}:{port}>')
     
@@ -112,9 +114,9 @@ def client(serverip, port, max_time, f):
                 send_bytes = packet_count / 1000
 
             print('{:<20} | {:<15} | {:<15} | {:<15}'.format('ID', 'Interval', 'Transfer', 'Bandwidth'))
-            print('------------------------------------------------------------')
-            print('{:<20} | {:<15} | {:<15} | {:<15}'.format(str(serverip)+':'+str(port), str(send_bytes), f, 'hej'))
-            
+            print('---------------------------------------------------------------------------------')
+            print('{:<20} | {:<15.2f} | {:<15} | {:<15}'.format(str(serverip)+':'+str(port), max_time, str(send_bytes)+' '+f, 'hej'))
+
             print('Bye') # When the client is done sending bytes it will print bye
             break   
         except KeyboardInterrupt:
