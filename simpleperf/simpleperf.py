@@ -47,19 +47,33 @@ def time_int(num):
 
 def handleClient(connectionSocket, addr, format,ip,port): 
     received_bytes = 0
+    start_time = time.time()
     while True:
+        
         try:
             data = connectionSocket.recv(1000)
             if not data:
                 break
             received_bytes += len(data) # Counting how many packets reseived
+           
         except:
             print("something went wrong with the message")
             connectionSocket.close()
+        end_time = time.time()    
+        interval = end_time - start_time  
+        
+        if format == 'B':
+                r_bytes = received_bytes
+        elif format == 'KB':
+                r_bytes = received_bytes / 1000
+        elif format == 'MB':
+                r_bytes = received_bytes / (1000 * 1000) 
     print('{:<20} | {:<15} | {:<15} | {:<15}'.format('ID', 'Interval', 'Received', 'Rate'))
     print('--------------------------------------------------------------------------')
-    print('{:<20} | {:<15} | {:<15} | {:<15}'.format(str(ip)+':'+str(port), 'tid', str(received_bytes), 'y Mbps'))    
-    #print(received_bytes)
+    print('{:<20} | {:<15} | {:<15} | {:<15}'.format(str(ip)+':'+str(port), '{:.2f}'.format(interval), '{:.3f}'.format(r_bytes) + ' ' + format, 'y Mbps'))
+
+    #print('{:<20} | {:<15.2f} | {:<15.3f} | {:<15}'.format(str(ip)+':'+str(port), interval, received_bytes + ' ' + format, 'y Mbps'))    
+    
     connectionSocket.send(b'ACK')
     #connectionSocket.close()
 
@@ -73,13 +87,13 @@ def server(ip, port, serverip, format): # må sende format til handleclient på 
     serverSocket.listen(5)
     print('---------------------------------------------')
     print(f'A simpleperf server is listening on port {port}')
-    print('---------------------------------------------')
+    print('---------------------------------------------\n')
 
     while True:
         connectionSocket, addr = serverSocket.accept()
         thread = threading.Thread(target=handleClient, args=(connectionSocket, addr,format,ip,port)) # ekstra komma på slutten
         thread.start()
-        print(f'A simpleperf client with <{ip}:{port}> is connected with <{serverip}:{port}>')
+        print(f'A simpleperf client with <{ip}:{port}> is connected with <{serverip}:{port}>\n')
     
     connectionSocket.close()    
 
@@ -89,9 +103,9 @@ def client(serverip, port, max_time, f):
     serverAddr = (serverip, port )
     try:
         clientSocket.connect(serverAddr)
-        print('---------------------------------------------')
+        print('----------------------------------------------------------------')
         print(f'A simpleperf client connecting to server <{serverip}>, port {port}')
-        print('---------------------------------------------')
+        print('----------------------------------------------------------------\n')
     except ConnectionError as e:
         print(e)
         print("Something went wrong! Did not connect client to server")
@@ -114,7 +128,7 @@ def client(serverip, port, max_time, f):
                 send_bytes = packet_count / 1000
 
             print('{:<20} | {:<15} | {:<15} | {:<15}'.format('ID', 'Interval', 'Transfer', 'Bandwidth'))
-            print('---------------------------------------------------------------------------------')
+            print('------------------------------------------------------------------------------')
             print('{:<20} | {:<15.2f} | {:<15} | {:<15}'.format(str(serverip)+':'+str(port), max_time, str(send_bytes)+' '+f, 'hej'))
 
             print('Bye') # When the client is done sending bytes it will print bye
