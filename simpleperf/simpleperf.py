@@ -54,6 +54,8 @@ def handleClient(connectionSocket, addr, format,ip,port):
             data = connectionSocket.recv(1000)
             if not data:
                 break
+            if b'BYE' in data: # If the client is done and sending bye, the server will then send the ack bye.
+                connectionSocket.send(b'ACK:BYE')
             received_bytes += len(data) # Counting how many packets reseived
            
         except:
@@ -68,12 +70,14 @@ def handleClient(connectionSocket, addr, format,ip,port):
                 r_bytes = received_bytes / 1000
         elif format == 'MB':
                 r_bytes = received_bytes / (1000 * 1000) 
+
+        rate = (received_bytes * 8)/(interval*1000000)
+
     print('{:<20} | {:<15} | {:<15} | {:<15}'.format('ID', 'Interval', 'Received', 'Rate'))
     print('--------------------------------------------------------------------------')
-    print('{:<20} | {:<15} | {:<15} | {:<15}'.format(str(ip)+':'+str(port), '{:.2f}'.format(interval), '{:.3f}'.format(r_bytes) + ' ' + format, 'y Mbps'))
+    print('{:<20} | {:<15} | {:<15} | {:<15}'.format(str(ip)+':'+str(port), '{:.2f}'.format(interval), str(int(r_bytes)) + ' ' + format, '{:.2f}'.format(rate) + ' Mbps'))
 
-    
-    connectionSocket.send(b'ACK')
+
     #connectionSocket.close()
 
 def server(ip, port, serverip, format): # må sende format til handleclient på en måde
@@ -119,6 +123,7 @@ def client(serverip, port, max_time, f):
                 clientSocket.send(packet) # the packet is sent
                 packet_count += 1
 
+
             if f == 'B':
                 send_bytes = packet_count * 1000
             elif f == 'KB':
@@ -126,15 +131,21 @@ def client(serverip, port, max_time, f):
             elif f == 'MB':
                 send_bytes = packet_count / 1000
 
+            bandwidth = ((packet_count*1000) * 8)/(max_time*1000000)    
+
             print('{:<20} | {:<15} | {:<15} | {:<15}'.format('ID', 'Interval', 'Transfer', 'Bandwidth'))
             print('------------------------------------------------------------------------------')
-            print('{:<20} | {:<15.2f} | {:<15} | {:<15}'.format(str(serverip)+':'+str(port), max_time, str(send_bytes)+' '+f, 'hej'))
+            print('{:<20} | {:<15.2f} | {:<15} | {:<10.2f}'.format(str(serverip)+':'+str(port), max_time, str(int(send_bytes))+' '+str(f), float(bandwidth))+' Mbps')
 
-            print('Bye') # When the client is done sending bytes it will print bye
-            break   
+
+            clientSocket.send(b'BYE') # When the client is done sending bytes it will send bye
+            clientSocket.recv(1000) # to recive the ack bye
+            break
+              
         except KeyboardInterrupt:
             print(" BYE")
             break
+
     clientSocket.close()
 
 def main():
