@@ -1,4 +1,4 @@
-# pernillehansen_s362050_portfolio1
+# pernille_portfolio1
 portfolio1
 To run the simpleperf program you must invoke a server with -s and a client -c
 you can choose to run it with the default settings or you can choose some of your own. 
